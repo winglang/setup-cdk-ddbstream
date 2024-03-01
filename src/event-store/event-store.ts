@@ -2,17 +2,24 @@ import { Construct } from "constructs";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { StartingPosition } from "aws-cdk-lib/aws-lambda";
 import {
+	HttpApi,
+	HttpIntegrationType,
+	type IHttpApi,
+} from "aws-cdk-lib/aws-apigatewayv2";
+import {
 	TableV2,
 	AttributeType,
 	StreamViewType,
 } from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
-import { Topic } from "aws-cdk-lib/aws-sns";
+import { Topic, type ITopic } from "aws-cdk-lib/aws-sns";
 import { SqsSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
 import { StreamSequencer } from "./stream-sequencer.js";
+import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
 export class EventStore extends Construct {
-	readonly transactionsTopic: Topic;
+	readonly transactionsTopic: ITopic;
+	readonly api: IHttpApi;
 
 	constructor(scope: Construct, id: string) {
 		super(scope, id);
@@ -29,7 +36,6 @@ export class EventStore extends Construct {
 				// platform: "node",
 				// target: "node20",
 				mainFields: ["module", "main"],
-				externalModules: ["aws-lambda"],
 			},
 		});
 
@@ -54,6 +60,24 @@ export class EventStore extends Construct {
 			new SqsSubscription(streamSequencer.transactionsQueue),
 		);
 
+		const apiHandler = new NodejsFunction(this, "api-handler", {
+			entry: `${import.meta.dirname}/event-store.api-handler.ts`,
+			bundling: {
+				format: OutputFormat.ESM,
+				// platform: "node",
+				// target: "node20",
+				mainFields: ["module", "main"],
+			},
+		});
+
+		const api = new HttpApi(this, "api", {
+			defaultIntegration: new HttpLambdaIntegration(
+				"api-handler-integration",
+				apiHandler,
+			),
+		});
+
 		this.transactionsTopic = transactionsTopic;
+		this.api = api;
 	}
 }
