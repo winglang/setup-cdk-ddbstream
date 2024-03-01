@@ -1,11 +1,7 @@
 import { Construct } from "constructs";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { StartingPosition } from "aws-cdk-lib/aws-lambda";
-import {
-	HttpApi,
-	HttpIntegrationType,
-	type IHttpApi,
-} from "aws-cdk-lib/aws-apigatewayv2";
+import { HttpApi, type IHttpApi } from "aws-cdk-lib/aws-apigatewayv2";
 import {
 	TableV2,
 	AttributeType,
