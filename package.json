@@ -1,0 +1,16 @@
+{
+	"type": "module",
+	"dependencies": {
+		"nanoid": "^5.0.6"
+	},
+	"devDependencies": {
+		"@types/node": "20",
+		"eslint": "^8.57.0",
+		"tsx": "^4.7.1",
+		"typescript": "^5.3.3",
+		"typescript-eslint": "^7.1.0"
+	},
+	"scripts": {
+		"lint": "eslint ."
+	}
+}
