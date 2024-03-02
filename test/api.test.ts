@@ -55,9 +55,9 @@ const userId = "user_d9CRQBphGgLHhpNdJf7rWnD9H";
 				{
 					type: "vehicleAssigned",
 					data: {
-						vehicleId: "vehicle_2",
+						vehicleId: "vehicle_3",
 						vehicleName: "toyota",
-						assignedTo: "user_2",
+						assignedTo: "user_3",
 					},
 				},
 			],
