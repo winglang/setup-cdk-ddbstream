@@ -13,6 +13,7 @@
 		"noUncheckedIndexedAccess": true,
 		"noEmit": true,
 		"downlevelIteration": false,
-		"verbatimModuleSyntax": true
+		"verbatimModuleSyntax": true,
+		"moduleDetection": "force"
 	}
 }

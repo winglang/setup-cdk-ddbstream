@@ -11,6 +11,8 @@ import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 export class StreamSequencer extends Construct {
 	readonly transactionsQueue: Queue;
 
+	readonly streamsTable: TableV2;
+
 	constructor(scope: Construct, id: string) {
 		super(scope, id);
 
@@ -48,5 +50,6 @@ export class StreamSequencer extends Construct {
 		streamsTable.grantReadWriteData(sequencerHandler);
 
 		this.transactionsQueue = transactionsQueue;
+		this.streamsTable = streamsTable;
 	}
 }
