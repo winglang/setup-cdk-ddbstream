@@ -46,7 +46,10 @@ export class StreamSequencer extends Construct {
 
 		sequencerHandler.addEventSource(new SqsEventSource(transactionsQueue));
 
-		sequencerHandler.addEnvironment("streamsTableName", streamsTable.tableName);
+		sequencerHandler.addEnvironment(
+			"STREAMS_TABLE_NAME",
+			streamsTable.tableName,
+		);
 		streamsTable.grantReadWriteData(sequencerHandler);
 
 		this.transactionsQueue = transactionsQueue;
