@@ -65,6 +65,7 @@ export class EventStore extends Construct {
 
 		const api = new Api(this, "api", {
 			transactionsTable,
+			streamsTable: streamSequencer.streamsTable,
 		});
 
 		this.transactionsTopic = transactionsTopic;

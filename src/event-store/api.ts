@@ -10,6 +10,7 @@ import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations
 
 export interface ApiProps {
 	readonly transactionsTable: ITableV2;
+	readonly streamsTable: ITableV2;
 }
 
 export class Api extends Construct {
@@ -45,6 +46,30 @@ export class Api extends Construct {
 			integration: new HttpLambdaIntegration(
 				"append-to-stream-handler-integration",
 				appendToStreamHandler,
+			),
+		});
+
+		const readStreamHandler = new NodejsFunction(this, "ReadStreamHandler", {
+			entry: `${import.meta.dirname}/api.read-stream-handler.ts`,
+			bundling: {
+				format: OutputFormat.ESM,
+				// platform: "node",
+				// target: "node20",
+				mainFields: ["module", "main"],
+			},
+		});
+		readStreamHandler.addEnvironment(
+			"STREAMS_TABLE_NAME",
+			props.streamsTable.tableName,
+		);
+		props.streamsTable.grantReadWriteData(readStreamHandler);
+
+		httpApi.addRoutes({
+			path: "/read-stream",
+			methods: [HttpMethod.POST],
+			integration: new HttpLambdaIntegration(
+				"ReadStreamIntegration",
+				readStreamHandler,
 			),
 		});
 

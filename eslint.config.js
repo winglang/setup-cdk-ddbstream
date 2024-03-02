@@ -23,6 +23,7 @@ export default tseslint.config(
 			"@typescript-eslint/consistent-type-imports": "error",
 			"@typescript-eslint/require-await": "warn",
 			"@typescript-eslint/no-unused-vars": "warn",
+			"no-mixed-spaces-and-tabs": "off",
 			"extensions/extensions": "error",
 		},
 	},
