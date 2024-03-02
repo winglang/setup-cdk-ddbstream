@@ -1,11 +1,7 @@
 import { Construct } from "constructs";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { StartingPosition } from "aws-cdk-lib/aws-lambda";
-import {
-	HttpApi,
-	HttpMethod,
-	type IHttpApi,
-} from "aws-cdk-lib/aws-apigatewayv2";
+import { type IHttpApi } from "aws-cdk-lib/aws-apigatewayv2";
 import {
 	TableV2,
 	AttributeType,
@@ -15,22 +11,21 @@ import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Topic, type ITopic } from "aws-cdk-lib/aws-sns";
 import { SqsSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
 import { StreamSequencer } from "./stream-sequencer.js";
-import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { Api } from "./api.js";
 
 export class EventStore extends Construct {
-	readonly transactionsTopic: ITopic;
+	readonly streamsTopic: ITopic;
 	readonly httpApi: IHttpApi;
 
 	constructor(scope: Construct, id: string) {
 		super(scope, id);
 
-		const transactionsTable = new TableV2(this, "transactions-table", {
+		const transactionsTable = new TableV2(this, "TransactionsTable", {
 			partitionKey: { name: "streamId", type: AttributeType.STRING },
 			dynamoStream: StreamViewType.NEW_IMAGE,
 		});
 
-		const fanOutHandler = new NodejsFunction(this, "fan-out-handler", {
+		const fanOutHandler = new NodejsFunction(this, "FanOutHandler", {
 			entry: `${import.meta.dirname}/event-store.fan-out-handler.ts`,
 			bundling: {
 				format: OutputFormat.ESM,
@@ -40,7 +35,7 @@ export class EventStore extends Construct {
 			},
 		});
 
-		const transactionsTopic = new Topic(this, "transactions-topic", {
+		const streamsTopic = new Topic(this, "StreamsTopic", {
 			fifo: true,
 		});
 
@@ -50,25 +45,22 @@ export class EventStore extends Construct {
 			}),
 		);
 
-		fanOutHandler.addEnvironment(
-			"TRANSACTIONS_TOPIC_ARN",
-			transactionsTopic.topicArn,
-		);
-		transactionsTopic.grantPublish(fanOutHandler);
+		fanOutHandler.addEnvironment("STREAMS_TOPIC_ARN", streamsTopic.topicArn);
+		streamsTopic.grantPublish(fanOutHandler);
 
-		const streamSequencer = new StreamSequencer(this, "stream-sequencer");
-		transactionsTopic.addSubscription(
-			new SqsSubscription(streamSequencer.transactionsQueue, {
+		const streamSequencer = new StreamSequencer(this, "StreamSequencer");
+		streamsTopic.addSubscription(
+			new SqsSubscription(streamSequencer.streamsQueue, {
 				rawMessageDelivery: true,
 			}),
 		);
 
-		const api = new Api(this, "api", {
+		const api = new Api(this, "Api", {
 			transactionsTable,
 			streamsTable: streamSequencer.streamsTable,
 		});
 
-		this.transactionsTopic = transactionsTopic;
+		this.streamsTopic = streamsTopic;
 		this.httpApi = api.httpApi;
 	}
 }

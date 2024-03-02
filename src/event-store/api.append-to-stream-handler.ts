@@ -59,71 +59,84 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 	const timestamp = new Date().getTime();
 	const expectedRevision = input.data.expectedRevision ?? "any";
 
-	const { Attributes } = await dynamodb.updateItem({
-		TableName: TRANSACTIONS_TABLE_NAME,
-		Key: {
-			streamId: { S: input.data.streamId },
-		},
-		UpdateExpression:
-			"SET #events = :events, #timestamp = :timestamp ADD #revision :totalNewEvents",
-		ConditionExpression:
-			"(:expectsNoStream = :true and attribute_not_exists(#streamId)) or (:expectsAny = :true) or (:expectsStreamExists = :true and attribute_exists(#streamId)) or (#revision = :expectedRevision)",
-		ExpressionAttributeNames: {
-			"#streamId": "streamId",
-			"#events": "events",
-			"#timestamp": "timestamp",
-			"#revision": "revision",
-		},
-		ExpressionAttributeValues: {
-			":events": {
-				L: input.data.events.map((event) => {
-					return {
-						M: {
-							id: {
-								S: event.id ?? nanoid36(),
+	try {
+		const { Attributes } = await dynamodb.updateItem({
+			TableName: TRANSACTIONS_TABLE_NAME,
+			Key: {
+				streamId: { S: input.data.streamId },
+			},
+			UpdateExpression:
+				"SET #events = :events, #timestamp = :timestamp ADD #revision :totalNewEvents",
+			ConditionExpression:
+				"(:expectsNoStream = :true and attribute_not_exists(#streamId)) or (:expectsAny = :true) or (:expectsStreamExists = :true and attribute_exists(#streamId)) or (#revision = :expectedRevision)",
+			ExpressionAttributeNames: {
+				"#streamId": "streamId",
+				"#events": "events",
+				"#timestamp": "timestamp",
+				"#revision": "revision",
+			},
+			ExpressionAttributeValues: {
+				":events": {
+					L: input.data.events.map((event) => {
+						return {
+							M: {
+								id: {
+									S: event.id ?? nanoid36(),
+								},
+								type: { S: event.type },
+								data: {
+									S: JSON.stringify(event.data ?? {}),
+								},
 							},
-							type: { S: event.type },
-							data: {
-								S: JSON.stringify(event.data ?? {}),
-							},
-						},
-					};
-				}),
+						};
+					}),
+				},
+				":timestamp": { N: `${timestamp}` },
+				":totalNewEvents": {
+					N: input.data.events.length.toString(),
+				},
+				":true": { BOOL: true },
+				":expectedRevision": {
+					N:
+						expectedRevision === "any" ||
+						expectedRevision === "noStream" ||
+						expectedRevision === "streamExists"
+							? "0"
+							: expectedRevision.toString(),
+				},
+				":expectsNoStream": {
+					BOOL: expectedRevision === "noStream",
+				},
+				":expectsAny": {
+					BOOL: expectedRevision === "any",
+				},
+				":expectsStreamExists": {
+					BOOL: expectedRevision === "streamExists",
+				},
 			},
-			":timestamp": { N: `${timestamp}` },
-			":totalNewEvents": {
-				N: input.data.events.length.toString(),
-			},
-			":true": { BOOL: true },
-			":expectedRevision": {
-				N:
-					expectedRevision === "any" ||
-					expectedRevision === "noStream" ||
-					expectedRevision === "streamExists"
-						? "0"
-						: expectedRevision.toString(),
-			},
-			":expectsNoStream": {
-				BOOL: expectedRevision === "noStream",
-			},
-			":expectsAny": {
-				BOOL: expectedRevision === "any",
-			},
-			":expectsStreamExists": {
-				BOOL: expectedRevision === "streamExists",
-			},
-		},
-		ReturnValues: "UPDATED_NEW",
-	});
+			ReturnValues: "UPDATED_NEW",
+		});
 
-	return {
-		statusCode: 200,
-		headers: {
-			"content-type": "application/json",
-		},
-		body: JSON.stringify({
-			message: "Events appended to stream correctly",
-			revision: Attributes?.["revision"]?.N,
-		}),
-	};
+		return {
+			statusCode: 200,
+			headers: {
+				"content-type": "application/json",
+			},
+			body: JSON.stringify({
+				message: "Events appended to stream correctly",
+				revision: Attributes?.["revision"]?.N,
+			}),
+		};
+	} catch (error) {
+		return {
+			statusCode: 400,
+			headers: {
+				"content-type": "application/json",
+			},
+			body: JSON.stringify({
+				message: "Error appending events to stream",
+				error: error instanceof Error ? error.message : error,
+			}),
+		};
+	}
 };

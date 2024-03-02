@@ -9,19 +9,19 @@ import { TableV2, AttributeType } from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export class StreamSequencer extends Construct {
-	readonly transactionsQueue: Queue;
+	readonly streamsQueue: Queue;
 
 	readonly streamsTable: TableV2;
 
 	constructor(scope: Construct, id: string) {
 		super(scope, id);
 
-		const transactionsQueue = new Queue(this, "transactions-queue", {
+		const streamsQueue = new Queue(this, "StreamsQueue", {
 			fifo: true,
 			fifoThroughputLimit: FifoThroughputLimit.PER_MESSAGE_GROUP_ID,
 			deduplicationScope: DeduplicationScope.MESSAGE_GROUP,
 			deadLetterQueue: {
-				queue: new Queue(this, "dead-letter-queue", {
+				queue: new Queue(this, "DeadLetterQueue", {
 					fifo: true,
 					fifoThroughputLimit: FifoThroughputLimit.PER_MESSAGE_GROUP_ID,
 					deduplicationScope: DeduplicationScope.MESSAGE_GROUP,
@@ -30,11 +30,12 @@ export class StreamSequencer extends Construct {
 			},
 		});
 
-		const streamsTable = new TableV2(this, "streams-table", {
+		const streamsTable = new TableV2(this, "StreamsTable", {
 			partitionKey: { name: "streamId", type: AttributeType.STRING },
+			sortKey: { name: "revision", type: AttributeType.NUMBER },
 		});
 
-		const sequencerHandler = new NodejsFunction(this, "handler", {
+		const sequencerHandler = new NodejsFunction(this, "Handler", {
 			entry: `${import.meta.dirname}/stream-sequencer.handler.ts`,
 			bundling: {
 				format: OutputFormat.ESM,
@@ -44,7 +45,7 @@ export class StreamSequencer extends Construct {
 			},
 		});
 
-		sequencerHandler.addEventSource(new SqsEventSource(transactionsQueue));
+		sequencerHandler.addEventSource(new SqsEventSource(streamsQueue));
 
 		sequencerHandler.addEnvironment(
 			"STREAMS_TABLE_NAME",
@@ -52,7 +53,7 @@ export class StreamSequencer extends Construct {
 		);
 		streamsTable.grantReadWriteData(sequencerHandler);
 
-		this.transactionsQueue = transactionsQueue;
+		this.streamsQueue = streamsQueue;
 		this.streamsTable = streamsTable;
 	}
 }

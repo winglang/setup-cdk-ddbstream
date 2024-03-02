@@ -19,11 +19,11 @@ export class Api extends Construct {
 	constructor(scope: Construct, id: string, props: ApiProps) {
 		super(scope, id);
 
-		const httpApi = new HttpApi(this, "api");
+		const httpApi = new HttpApi(this, "Api");
 
 		const appendToStreamHandler = new NodejsFunction(
 			this,
-			"append-to-stream-handler",
+			"AppendToStreamHandler",
 			{
 				entry: `${import.meta.dirname}/api.append-to-stream-handler.ts`,
 				bundling: {
@@ -44,7 +44,7 @@ export class Api extends Construct {
 			path: "/append-to-stream",
 			methods: [HttpMethod.POST],
 			integration: new HttpLambdaIntegration(
-				"append-to-stream-handler-integration",
+				"AppendToStreamIntegration",
 				appendToStreamHandler,
 			),
 		});

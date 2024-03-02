@@ -5,7 +5,7 @@ const { STREAMS_TABLE_NAME } = process.env;
 const dynamodb = new DynamoDB();
 
 export const handler: SQSHandler = async (event) => {
-	console.log("Processing transaction", JSON.stringify(event, undefined, "\t"));
+	console.log("Processing event", JSON.stringify(event, undefined, "\t"));
 	await dynamodb.batchWriteItem({
 		RequestItems: {
 			[STREAMS_TABLE_NAME!]: event.Records.map((record) => ({

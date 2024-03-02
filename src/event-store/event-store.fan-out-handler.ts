@@ -1,10 +1,9 @@
 import type { DynamoDBStreamHandler } from "aws-lambda";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { SNS } from "@aws-sdk/client-sns";
 
-const { TRANSACTIONS_TOPIC_ARN } = process.env;
-if (!TRANSACTIONS_TOPIC_ARN) {
-	throw new Error("TRANSACTIONS_TOPIC_ARN is not defined");
+const { STREAMS_TOPIC_ARN } = process.env;
+if (!STREAMS_TOPIC_ARN) {
+	throw new Error("STREAMS_TOPIC_ARN is not defined");
 }
 
 const sns = new SNS();
@@ -25,7 +24,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 			1n + BigInt(transaction["revision"]!.N!) - BigInt(events.length);
 
 		await sns.publishBatch({
-			TopicArn: TRANSACTIONS_TOPIC_ARN,
+			TopicArn: STREAMS_TOPIC_ARN,
 			PublishBatchRequestEntries: transaction["events"]!.L!.map(
 				(event, eventIndex) => ({
 					Id: event.M!["id"]!.S!,
