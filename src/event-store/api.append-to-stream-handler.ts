@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import * as z from "zod";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { nanoid36 } from "../nanoid.js";
@@ -38,7 +38,16 @@ const inputSchema = z.object({
 
 const dynamodb = new DynamoDB();
 
+interface Context {
+	dynamodb: DynamoDB;
+	transactionsTableName: string;
+}
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+	return appendToStream(event, { dynamodb, transactionsTableName: TRANSACTIONS_TABLE_NAME! });
+}
+
+export const appendToStream = async (event: APIGatewayProxyEventV2, ctx: Context): Promise<APIGatewayProxyResultV2> => {
 	const input = await stringToJSONSchema
 		.pipe(inputSchema)
 		.safeParseAsync(event.body);
@@ -60,8 +69,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 	const expectedRevision = input.data.expectedRevision ?? "any";
 
 	try {
-		const { Attributes } = await dynamodb.updateItem({
-			TableName: TRANSACTIONS_TABLE_NAME,
+		const { Attributes } = await ctx.dynamodb.updateItem({
+			TableName: ctx.transactionsTableName,
 			Key: {
 				streamId: { S: input.data.streamId },
 			},

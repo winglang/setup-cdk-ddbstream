@@ -1,14 +1,26 @@
-import type { SQSHandler } from "aws-lambda";
+import type { SQSEvent, SQSHandler } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
 const { STREAMS_TABLE_NAME } = process.env;
 const dynamodb = new DynamoDB();
 
+interface Context {
+	streamTableName: string;
+	dynamodb: DynamoDB;
+}
+
 export const handler: SQSHandler = async (event) => {
+	return streamSequencer(event, {
+		streamTableName: STREAMS_TABLE_NAME!,
+		dynamodb,
+	});
+};
+
+export const streamSequencer = async (event: SQSEvent, ctx: Context) => {
 	console.log("Processing event", JSON.stringify(event, undefined, "\t"));
-	await dynamodb.batchWriteItem({
+	await ctx.dynamodb.batchWriteItem({
 		RequestItems: {
-			[STREAMS_TABLE_NAME!]: event.Records.map((record) => ({
+			[ctx.streamTableName]: event.Records.map((record) => ({
 				PutRequest: {
 					Item: {
 						streamId: { S: record.messageAttributes["streamId"]!.stringValue! },

@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import * as z from "zod";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
@@ -25,7 +25,16 @@ const inputSchema = z.object({
 
 const dynamodb = new DynamoDB();
 
+interface Context {
+	dynamodb: DynamoDB;
+	streamsTableName: string;
+}
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+	return readStream(event, { dynamodb, streamsTableName: STREAMS_TABLE_NAME! });
+}
+
+export const readStream = async (event: APIGatewayProxyEventV2, ctx: Context): Promise<APIGatewayProxyResultV2> => {
 	const input = await stringToJSONSchema
 		.pipe(inputSchema)
 		.safeParseAsync(event.body);
@@ -44,8 +53,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
 	const eventTypes = input.data.eventTypes ?? [];
 
-	const { Items } = await dynamodb.query({
-		TableName: STREAMS_TABLE_NAME!,
+	const { Items } = await ctx.dynamodb.query({
+		TableName: ctx.streamsTableName,
 		KeyConditionExpression: "#streamId = :streamId",
 		FilterExpression: ":allTypes = :true or contains(:types, #type)",
 		ExpressionAttributeNames: {
