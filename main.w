@@ -1,29 +1,28 @@
 bring cloud;
 bring ex;
 bring "./handlers.w" as handlers;
-bring "./dynamo-table.w" as dynamodb;
+bring dynamodb;
 
 class StreamSequencer {
   pub table: dynamodb.Table;
   pub queue: cloud.Queue;
 
   new() {
+    let streamIdAttribute = "streamId";
+    let revisionAttribute = "revision";
     let streamsQueue = new cloud.Queue();
     let streamsTable = new dynamodb.Table(
-      name: "streams_table",
-      hashKey: "streamId",
-      rangeKey: "revision",
-      attributeDefinitions: {
-        streamId: "S",
-        revision: "N"
-      }
+      attributes: [
+        { name: streamIdAttribute, type: "S" },
+        { name: revisionAttribute, type: "N" }
+      ],
+
+      hashKey: streamIdAttribute,
+      rangeKey: revisionAttribute,
     );
 
     streamsQueue.setConsumer(inflight (event) => {
-      handlers.streamSequencer(event, 
-        streamsTableName: streamsTable.name,
-        dynamodb: streamsTable.client(),
-      );
+      handlers.streamSequencer(event, streamsTable: streamsTable);
     });
 
     this.table = streamsTable;
@@ -31,6 +30,17 @@ class StreamSequencer {
   }
 }
 
+class Topic extends cloud.Topic {
+  new() {
+
+  }
+
+  pub connectToQueue(queue: cloud.Queue) {
+    this.onMessage(inflight (event) => {
+      queue.push(event);
+    });
+  }
+}
 
 class EventStore {
   pub url: str;
@@ -39,41 +49,32 @@ class EventStore {
     let api = new cloud.Api();
     this.url = api.url;
 
+    let streamId = "streamId";
+
     let transactionsTable = new dynamodb.Table(
       name: "transactions_table",
-      hashKey: "streamId",
-      attributeDefinitions: {
-        streamId: "S",
-      },
+      hashKey: streamId,
+      attributes: [ { name: streamId, type: "S" } ],
     );
 
     let streams = new StreamSequencer();
-    let streamsTopic = new cloud.Topic() as "streams_topic";
+    let streamsTopic = new Topic() as "streams_topic";
 
-    transactionsTable.onEvent(inflight (event) => {
-      streamsTopic.publish(event);
+    transactionsTable.setStreamConsumer(inflight (record) => {
+      // handlers.fanout(event, );
+      log("new record");
     });
 
-    streamsTopic.onMessage(inflight (event) => {
-      streams.queue.push(event);
-    });
-      
+    streamsTopic.connectToQueue(streams.queue);
+
     api.post("/append-to-stream", inflight (req) => {
-      log("append-to-stream: {req.body}");
-      
-      return handlers.appendToStream(req, 
-        transactionsTableName: transactionsTable.name,
-        dynamodb: transactionsTable.client(),
-      );
+      log("append-to-stream: {req.body!}");
+      return handlers.appendToStream(req, transactionsTable: transactionsTable);
     });
 
     api.post("/read-stream", inflight (req) => {
-      log("read-stream: {req.body}");
-
-      return handlers.readStream(req,
-        dynamodb: streams.table.client(),
-        streamsTableName: streams.table.name,
-      );
+      log("read-stream: {req.body!}");
+      return handlers.readStream(req, streamsTable: streams.table);
     });
   }
 }

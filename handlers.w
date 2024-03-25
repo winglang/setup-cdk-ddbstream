@@ -1,6 +1,6 @@
 bring cloud;
 bring ex;
-bring "./dynamo-table.w" as dynamodb;
+bring dynamodb;
 
 pub class Util {
   pub extern "./src/event-store/api.append-to-stream-handler.ts" static inflight appendToStream(event: cloud.ApiRequest, ctx: AppendToStreamContext): cloud.ApiResponse;
@@ -10,18 +10,15 @@ pub class Util {
 }
 
 struct AppendToStreamContext {
-  dynamodb: dynamodb.IAwsClient;
-  transactionsTableName: str;
+  transactionsTable: dynamodb.Table;
 }
 
 struct ReadStreamContext {
-  dynamodb: dynamodb.IAwsClient;
-  streamsTableName: str;
+  streamsTable: dynamodb.Table;
 }
 
 struct StreamSequencerContext {
-  dynamodb: dynamodb.IAwsClient;
-  streamsTableName: str;
+  streamsTable: dynamodb.Table;
 }
 
 // struct FanOutContext {
