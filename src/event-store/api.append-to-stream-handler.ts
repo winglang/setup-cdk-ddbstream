@@ -37,23 +37,19 @@ const inputSchema = z.object({
 		.nonempty(),
 });
 
-const globalDynamodb = new DynamoDB();
+const dynamodb = new DynamoDB();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-	return main(event, { dynamodb: globalDynamodb, tableName: TRANSACTIONS_TABLE_NAME! });
+	return main(event, { 
+		dynamodb: dynamodb,
+		tableName: TRANSACTIONS_TABLE_NAME!
+	});
 }
 
-export const appendToStream: extern["appendToStream"] = async (event, ctx) => {
+export const appendToStream: extern["appendToStream"] = async (event, transactionsTable) => {
 	const r = await main(event as any, {
-		dynamodb: new DynamoDB({ 
-			endpoint: ctx.transactionsTableConnection.endpoint,
-			region: "local",
-			credentials: {
-				accessKeyId: "local",
-				secretAccessKey: "local",
-			},		
-		}),
-		tableName: ctx.transactionsTableConnection.tableName,
+		dynamodb: new DynamoDB(transactionsTable.clientConfig!),
+		tableName: transactionsTable.tableName
 	});
 
 	if (typeof(r) === "string") {

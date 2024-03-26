@@ -8,8 +8,8 @@ dependencies:
     specifier: ^19.11.0
     version: 19.11.0(cdktf@0.20.5)(constructs@10.3.0)
   '@winglibs/dynamodb':
-    specifier: ^0.0.5
-    version: 0.0.5(@aws-sdk/client-dynamodb-streams@3.540.0)(@aws-sdk/client-dynamodb@3.540.0)(@aws-sdk/lib-dynamodb@3.540.0)(@aws-sdk/util-dynamodb@3.540.0)(@cdktf/provider-aws@19.11.0)(get-port@7.1.0)
+    specifier: ^0.0.7
+    version: 0.0.7(@aws-sdk/client-dynamodb-streams@3.540.0)(@aws-sdk/client-dynamodb@3.540.0)(@aws-sdk/lib-dynamodb@3.540.0)(@aws-sdk/util-dynamodb@3.540.0)(@cdktf/provider-aws@19.11.0)(get-port@7.1.0)
   aws-cdk:
     specifier: ^2.130.0
     version: 2.130.0
@@ -1687,8 +1687,8 @@ packages:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
     dev: true
 
-  /@winglibs/dynamodb@0.0.5(@aws-sdk/client-dynamodb-streams@3.540.0)(@aws-sdk/client-dynamodb@3.540.0)(@aws-sdk/lib-dynamodb@3.540.0)(@aws-sdk/util-dynamodb@3.540.0)(@cdktf/provider-aws@19.11.0)(get-port@7.1.0):
-    resolution: {integrity: sha512-DeBX97gcx6m60dCXu1VPKPRSmemQa0dRZFdFcMON9WwQKj+Ym1nP/MC2Xw2Ve8d6b7vDcc9ftPEfd4oyrqGNiQ==}
+  /@winglibs/dynamodb@0.0.7(@aws-sdk/client-dynamodb-streams@3.540.0)(@aws-sdk/client-dynamodb@3.540.0)(@aws-sdk/lib-dynamodb@3.540.0)(@aws-sdk/util-dynamodb@3.540.0)(@cdktf/provider-aws@19.11.0)(get-port@7.1.0):
+    resolution: {integrity: sha512-J5nPsaTs6FwxJ1nSs0zSnydCZsbMlmS5ajRE0Iz/cUq08xgBeOfD0t9dpFvnKyl/w9yLdECAFahxuOQEhpmCKg==}
     peerDependencies:
       '@aws-sdk/client-dynamodb': ^3.461.0
       '@aws-sdk/client-dynamodb-streams': ^3.461.0

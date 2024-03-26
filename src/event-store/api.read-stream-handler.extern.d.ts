@@ -1,5 +1,5 @@
 export default interface extern {
-  readStream: (event: ApiRequest, ctx: ReadStreamContext) => Promise<ApiResponse>,
+  readStream: (event: ApiRequest, streamsTable: Connection) => Promise<ApiResponse>,
 }
 /** Allowed HTTP methods for a endpoint. */
 export enum HttpMethod {
@@ -27,12 +27,18 @@ export interface ApiRequest {
   /** The path variables. */
   readonly vars: Readonly<Record<string, string>>;
 }
-export interface Connection {
-  readonly endpoint?: (string) | undefined;
-  readonly tableName: string;
+export interface Credentials {
+  readonly accessKeyId: string;
+  readonly secretAccessKey: string;
 }
-export interface ReadStreamContext {
-  readonly streamsTableConnection: Connection;
+export interface ClientConfig {
+  readonly credentials: Credentials;
+  readonly endpoint: string;
+  readonly region: string;
+}
+export interface Connection {
+  readonly clientConfig?: (ClientConfig) | undefined;
+  readonly tableName: string;
 }
 /** Shape of a response from a inflight handler. */
 export interface ApiResponse {
