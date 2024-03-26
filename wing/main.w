@@ -14,7 +14,6 @@ class StreamSequencer {
   pub queue: cloud.Queue;
 
   new() {
-
     let streamsQueue = new cloud.Queue();
     let streamsTable = new dynamodb.Table(
       attributes: [
