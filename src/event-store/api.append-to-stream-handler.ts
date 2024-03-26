@@ -1,7 +1,8 @@
-import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import * as z from "zod";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { nanoid36 } from "../nanoid.js";
+import type extern from "./api.append-to-stream-handler.extern";
 
 const { TRANSACTIONS_TABLE_NAME } = process.env;
 
@@ -36,18 +37,38 @@ const inputSchema = z.object({
 		.nonempty(),
 });
 
-const dynamodb = new DynamoDB();
-
-interface Context {
-	dynamodb: DynamoDB;
-	transactionsTableName: string;
-}
+const globalDynamodb = new DynamoDB();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-	return appendToStream(event, { dynamodb, transactionsTableName: TRANSACTIONS_TABLE_NAME! });
+	return main(event, { dynamodb: globalDynamodb, tableName: TRANSACTIONS_TABLE_NAME! });
 }
 
-export const appendToStream = async (event: APIGatewayProxyEventV2, ctx: Context): Promise<APIGatewayProxyResultV2> => {
+export const appendToStream: extern["appendToStream"] = async (event, ctx) => {
+	const r = await main(event as any, {
+		dynamodb: new DynamoDB({ 
+			endpoint: ctx.transactionsTableConnection.endpoint,
+			region: "local",
+			credentials: {
+				accessKeyId: "local",
+				secretAccessKey: "local",
+			},		
+		}),
+		tableName: ctx.transactionsTableConnection.tableName,
+	});
+
+	if (typeof(r) === "string") {
+		return { body: r };
+	}
+
+	return {
+		body: r.body,
+		statusCode: r.statusCode,
+		headers: r.headers as any,
+		status: r.statusCode,
+	};
+};
+
+const main = async (event: APIGatewayProxyEventV2, ctx: { dynamodb: DynamoDB, tableName: string }): Promise<APIGatewayProxyResultV2> => {
 	const input = await stringToJSONSchema
 		.pipe(inputSchema)
 		.safeParseAsync(event.body);
@@ -70,7 +91,7 @@ export const appendToStream = async (event: APIGatewayProxyEventV2, ctx: Context
 
 	try {
 		const { Attributes } = await ctx.dynamodb.updateItem({
-			TableName: ctx.transactionsTableName,
+			TableName: ctx.tableName,
 			Key: {
 				streamId: { S: input.data.streamId },
 			},

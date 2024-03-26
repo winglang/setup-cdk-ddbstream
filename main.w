@@ -6,6 +6,7 @@ bring dynamodb;
 class StreamSequencer {
   pub table: dynamodb.Table;
   pub queue: cloud.Queue;
+  pub tableConnection: dynamodb.Connection;
 
   new() {
     let streamIdAttribute = "streamId";
@@ -21,12 +22,16 @@ class StreamSequencer {
       rangeKey: revisionAttribute,
     );
 
+    let conn = streamsTable.connection();
+
     streamsQueue.setConsumer(inflight (event) => {
-      handlers.streamSequencer(event, streamsTable: streamsTable);
+      handlers.streamSequencer(event, streamsTableConnection: conn);
     });
 
     this.table = streamsTable;
     this.queue = streamsQueue;
+
+    this.tableConnection = conn;
   }
 }
 
@@ -61,20 +66,22 @@ class EventStore {
     let streamsTopic = new Topic() as "streams_topic";
 
     transactionsTable.setStreamConsumer(inflight (record) => {
-      // handlers.fanout(event, );
       log("new record");
     });
 
     streamsTopic.connectToQueue(streams.queue);
 
+    let transactionTableConnection = transactionsTable.connection();
+    let streamsTableConnection = streams.table.connection();
+
     api.post("/append-to-stream", inflight (req) => {
       log("append-to-stream: {req.body!}");
-      return handlers.appendToStream(req, transactionsTable: transactionsTable);
+      return handlers.appendToStream(req, transactionsTableConnection: transactionTableConnection);
     });
 
     api.post("/read-stream", inflight (req) => {
       log("read-stream: {req.body!}");
-      return handlers.readStream(req, streamsTable: streams.table);
+      return handlers.readStream(req, streamsTableConnection: streamsTableConnection);
     });
   }
 }

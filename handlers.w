@@ -10,15 +10,15 @@ pub class Util {
 }
 
 struct AppendToStreamContext {
-  transactionsTable: dynamodb.Table;
+  transactionsTableConnection: dynamodb.Connection;
 }
 
 struct ReadStreamContext {
-  streamsTable: dynamodb.Table;
+  streamsTableConnection: dynamodb.Connection;
 }
 
 struct StreamSequencerContext {
-  streamsTable: dynamodb.Table;
+  streamsTableConnection: dynamodb.Connection;
 }
 
 // struct FanOutContext {

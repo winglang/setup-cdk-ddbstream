@@ -1,24 +1,14 @@
 {
 	"type": "commonjs",
 	"dependencies": {
-		"@aws-sdk/client-dynamodb": "^3.525.0",
-		"@aws-sdk/client-sns": "^3.525.0",
-		"@aws-sdk/util-dynamodb": "^3.525.0",
-		"@cdktf/provider-aws": "^19.10.0",
-		"@cdktf/provider-helm": "^10.0.0",
-		"@cdktf/provider-kubernetes": "^11.2.0",
-		"@cdktf/provider-null": "^10.0.0",
-		"@winglang/sdk": "^0.59.45",
-		"@winglibs/containers": "^0.0.26",
-		"@winglibs/dynamodb": "^0.0.3",
+		"@aws-sdk/client-dynamodb": "^3.540.0",
+		"@cdktf/provider-aws": "^19.11.0",
+		"@winglibs/dynamodb": "^0.0.5",
 		"aws-cdk": "^2.130.0",
 		"aws-cdk-lib": "^2.130.0",
-		"cdk8s": "^2.68.46",
-		"cdk8s-plus-27": "^2.7.84",
 		"cdktf": "^0.20.5",
 		"constructs": "^10.3.0",
 		"nanoid": "^5.0.6",
-		"winglang": "^0.63.3",
 		"zod": "^3.22.4"
 	},
 	"devDependencies": {
