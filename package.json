@@ -3,7 +3,7 @@
 	"dependencies": {
 		"@aws-sdk/client-dynamodb": "^3.540.0",
 		"@cdktf/provider-aws": "^19.11.0",
-		"@winglibs/dynamodb": "^0.0.7",
+		"@winglibs/dynamodb": "^0.0.8",
 		"aws-cdk": "^2.130.0",
 		"aws-cdk-lib": "^2.130.0",
 		"cdktf": "^0.20.5",
