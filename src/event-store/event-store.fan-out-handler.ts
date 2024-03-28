@@ -23,20 +23,20 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 		const initialRevision = 1n + BigInt(transaction["revision"]!.N!) - BigInt(events.length);
 
 		for (const [eventIndex, event] of events.entries()) {
+			const messageId = event.M!["id"]!.S!;
+			const messageDeduplicationId = messageId; // Assuming 'id' is unique for deduplication
+			const revision = (initialRevision + BigInt(eventIndex)).toString();
+
 			await sns.publish({
+				Id: event.M!["id"]!.S!,
 				TopicArn: STREAMS_TOPIC_ARN,
-				Message: JSON.stringify({
-					id: event.M!["id"]!.S!,
-					data: event.M!["data"]!.S!,
-					type: event.M!["type"]!.S!,
-					streamId: streamId,
-					revision: (initialRevision + BigInt(eventIndex)).toString(),
-					timestamp: transaction["timestamp"]!.N!,
-				}),
+				Message: event.M!["data"]!.S!,
+				MessageGroupId: streamId, // Required for FIFO topics
+				MessageDeduplicationId: messageDeduplicationId, // Optional if SNS can use content-based deduplication
 				MessageAttributes: {
 					eventId: {
 						DataType: "String",
-						StringValue: event.M!["id"]!.S!,
+						StringValue: messageId,
 					},
 					eventType: {
 						DataType: "String",
@@ -48,7 +48,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 					},
 					revision: {
 						DataType: "Number",
-						StringValue: (initialRevision + BigInt(eventIndex)).toString(),
+						StringValue: revision,
 					},
 					timestamp: {
 						DataType: "Number",
