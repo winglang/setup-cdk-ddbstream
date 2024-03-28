@@ -20,41 +20,42 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 
 		const streamId = transaction["streamId"]!.S!;
 		const events = transaction["events"]!.L!;
-		const initialRevision =
-			1n + BigInt(transaction["revision"]!.N!) - BigInt(events.length);
+		const initialRevision = 1n + BigInt(transaction["revision"]!.N!) - BigInt(events.length);
 
-		await sns.publishBatch({
-			TopicArn: STREAMS_TOPIC_ARN,
-			PublishBatchRequestEntries: transaction["events"]!.L!.map(
-				(event, eventIndex) => ({
-					Id: event.M!["id"]!.S!,
-					Message: event.M!["data"]!.S!,
-					MessageGroupId: streamId,
-					MessageDeduplicationId: event.M!["id"]!.S!,
-					MessageAttributes: {
-						eventId: {
-							DataType: "String",
-							StringValue: event.M!["id"]!.S!,
-						},
-						eventType: {
-							DataType: "String",
-							StringValue: event.M!["type"]!.S!,
-						},
-						streamId: {
-							DataType: "String",
-							StringValue: streamId,
-						},
-						revision: {
-							DataType: "Number",
-							StringValue: (initialRevision + BigInt(eventIndex)).toString(),
-						},
-						timestamp: {
-							DataType: "Number",
-							StringValue: transaction["timestamp"]!.N!,
-						},
-					},
+		for (const [eventIndex, event] of events.entries()) {
+			await sns.publish({
+				TopicArn: STREAMS_TOPIC_ARN,
+				Message: JSON.stringify({
+					id: event.M!["id"]!.S!,
+					data: event.M!["data"]!.S!,
+					type: event.M!["type"]!.S!,
+					streamId: streamId,
+					revision: (initialRevision + BigInt(eventIndex)).toString(),
+					timestamp: transaction["timestamp"]!.N!,
 				}),
-			),
-		});
+				MessageAttributes: {
+					eventId: {
+						DataType: "String",
+						StringValue: event.M!["id"]!.S!,
+					},
+					eventType: {
+						DataType: "String",
+						StringValue: event.M!["type"]!.S!,
+					},
+					streamId: {
+						DataType: "String",
+						StringValue: streamId,
+					},
+					revision: {
+						DataType: "Number",
+						StringValue: (initialRevision + BigInt(eventIndex)).toString(),
+					},
+					timestamp: {
+						DataType: "Number",
+						StringValue: transaction["timestamp"]!.N!,
+					},
+				},
+			});
+		}
 	}
 };
