@@ -10,7 +10,7 @@ export const handler: SQSHandler = async(event) => {
 };
 
 export const streamSequencer: extern["streamSequencer"] = async (event, table) => {
-	await main(event as SQSEvent, { 
+	await main(JSON.parse(event) as SQSEvent, { 
 		dynamodb: new DynamoDB(table.clientConfig!),
 		tableName: table.tableName,
 	});

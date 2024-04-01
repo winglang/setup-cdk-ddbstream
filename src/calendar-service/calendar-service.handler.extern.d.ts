@@ -1,5 +1,5 @@
 export default interface extern {
-  streamSequencer: (event: string, streamsTable: Connection) => Promise<void>,
+  calendarService: (event: string, streamsTable: Connection) => Promise<void>,
 }
 export interface Credentials {
   readonly accessKeyId: string;
