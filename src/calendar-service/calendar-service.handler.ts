@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import type extern from "./calendar-service.handler.extern";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
 export const calendarService: extern["calendarService"] = async (event, table) => {
 	let dynamoDb = new DynamoDB(table.clientConfig!);
