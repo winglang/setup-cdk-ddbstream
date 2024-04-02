@@ -1,5 +1,5 @@
 export default interface extern {
-  calendarServiceBucketStore: (event: Readonly<any>, storage: Bucket$Inflight) => Promise<void>,
+  calendarService: (event: Readonly<any>, storage: Bucket$Inflight) => Promise<void>,
 }
 /** Trait marker for classes that can be depended upon.
 The presence of this interface indicates that an object has

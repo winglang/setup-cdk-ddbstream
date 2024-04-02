@@ -7,18 +7,15 @@ import type extern from "./calendar-service.handler.extern";
 const { TABLE_NAME } = process.env;
 
 export const handler: SQSHandler = async (sqsEvent) => {
-	await main(sqsEvent, { dynamodb: new DynamoDB(), tableName: TABLE_NAME! });
-};
-
-export const calendarService: extern["calendarService"] = async (event, table) => {
-	await main(JSON.parse(event), { 
-		dynamodb: new DynamoDB(table.clientConfig!),
-		tableName: table.tableName,
+	await main(sqsEvent, {
+		dynamodb: new DynamoDB(),
+		tableName: TABLE_NAME!
 	});
 };
 
+
 const main = async (sqsEvent: SQSEvent, ctx: { dynamodb: DynamoDB, tableName: string }) => {
-	console.log("Processing calendar event", JSON.stringify(sqsEvent, undefined, "\t"));
+	// console.log("Processing calendar event", JSON.stringify(sqsEvent, undefined, "\t"));
 	await ctx.dynamodb.batchWriteItem({
 		RequestItems: {
 			[ctx.tableName]: sqsEvent.Records.map((record) => {

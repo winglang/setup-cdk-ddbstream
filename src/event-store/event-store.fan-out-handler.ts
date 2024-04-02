@@ -20,9 +20,9 @@ export const eventStoreFanOut = async (event: any, sns: SNS) => {
 };
 
 const main = async (event: DynamoDBStreamEvent, ctx: Context) => {
-	console.log("Processing transaction", JSON.stringify(event, undefined, "\t"));
+	// console.log("Processing transaction", JSON.stringify(event, undefined, "\t"));
 	for (const record of event.Records) {
-		console.log("Processing record", JSON.stringify(record, undefined, "\t"));
+		// console.log("Processing record", JSON.stringify(record, undefined, "\t"));
 		if (record.eventName !== "INSERT" && record.eventName !== "MODIFY") {
 			continue;
 		}
