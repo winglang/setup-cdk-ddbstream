@@ -20,18 +20,18 @@ class CalendarService extends optibus.ClientService {
 }
 
 
-let route = "/append-to-stream";
+let route = "/driver/assignment";
 let eventStore = new optibus.EventStore(
 	appendStreamRoute: route,
 	streamIdAttribute: "streamId",
 	revisionAttribute: "revision"
 );
 
-	let calendarService = new CalendarService();
-	eventStore.subscribeQueue(calendarService.queue);
+let calendarService = new CalendarService();
+eventStore.subscribeQueue(calendarService.queue);
 
-	let event = Json.stringify({
-		streamId: "my-stream-id",
+let event = Json.stringify({
+	streamId: "my-stream-id",
 	events: [
 		{ id: "e1", type: "t1", data: { "vehicleId":"a1", "vehicleName":"b1", "assignedTo": "c1" } },
 		{ id: "e2", type: "t2", data: { "and":"now", "for":"something", "complexly": "different" } },

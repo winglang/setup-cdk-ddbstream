@@ -6,6 +6,5 @@ export const calendarService: extern["calendarService"] = async (event, bucket) 
 		const filename = `${record.messageAttributes.eventType.stringValue}/${record.messageAttributes.revision.stringValue}.json`;
 		console.log(`saving file name ${filename}`);
 		bucket.put(filename, record.body);
-
 	}
 }
