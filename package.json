@@ -1,11 +1,14 @@
 {
-	"type": "module",
+	"type": "commonjs",
 	"dependencies": {
-		"@aws-sdk/client-dynamodb": "^3.525.0",
-		"@aws-sdk/client-sns": "^3.525.0",
-		"@aws-sdk/util-dynamodb": "^3.525.0",
+		"@aws-sdk/client-dynamodb": "^3.540.0",
+		"@aws-sdk/client-sns": "^3.540.0",
+		"@cdktf/provider-aws": "^19.11.0",
+		"@winglibs/dynamodb": "^0.1.0",
+		"@winglibs/simtools": "^0.0.2",
 		"aws-cdk": "^2.130.0",
 		"aws-cdk-lib": "^2.130.0",
+		"cdktf": "^0.20.5",
 		"constructs": "^10.3.0",
 		"nanoid": "^5.0.6",
 		"zod": "^3.22.4"
@@ -20,6 +23,7 @@
 		"typescript-eslint": "^7.1.0"
 	},
 	"scripts": {
+		"build": "tsc",
 		"dev": "cdk watch --hotswap-fallback --all",
 		"synth": "cdk synth",
 		"deploy": "cdk deploy --all",
