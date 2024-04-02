@@ -15,30 +15,31 @@ class CalendarService extends optibus.ClientService {
 		this.storage = new cloud.Bucket();
     this.queue.setConsumer(inflight (event) => {
 			CalendarService.calendarService(Json.parse(event), this.storage);
-			});
-		}
+		});
 	}
+}
 
 
-	let route = "/append-to-stream";
-	let eventStore = new optibus.EventStore(
-		appendStreamRoute: route,
-		streamIdAttribute: "streamId",
-		revisionAttribute: "revision"
-		);
+let route = "/append-to-stream";
+let eventStore = new optibus.EventStore(
+	appendStreamRoute: route,
+	streamIdAttribute: "streamId",
+	revisionAttribute: "revision"
+	);
 
-		let calendarService = new CalendarService();
-		eventStore.subscribeQueue(calendarService.queue);
+	let calendarService = new CalendarService();
+	eventStore.subscribeQueue(calendarService.queue);
 
-		let event = Json.stringify({
-			streamId: "my-stream-id",
-    events: [
-      { id: "e1", type: "t1", data: { "vehicleId":"a1", "vehicleName":"b1", "assignedTo": "c1" } },
-			{ id: "e2", type: "t2", data: { "and":"now", "for":"something", "complexly": "different" } },
-			{ id: "e3", type: "t1", data: { "vehicleId":"a2", "vehicleName":"b2", "assignedTo": "c2" } },
-    ]
-  });
+	let event = Json.stringify({
+		streamId: "my-stream-id",
+	events: [
+		{ id: "e1", type: "t1", data: { "vehicleId":"a1", "vehicleName":"b1", "assignedTo": "c1" } },
+		{ id: "e2", type: "t2", data: { "and":"now", "for":"something", "complexly": "different" } },
+		{ id: "e3", type: "t1", data: { "vehicleId":"a2", "vehicleName":"b2", "assignedTo": "c2" } },
+	]
+});
 log(event);
+
 test "data is stored on bucket" {
   let appendResponse = http.post("{eventStore.url}{route}", body: event);
 	expect.equal({
@@ -57,5 +58,5 @@ test "data is stored on bucket" {
 
 
 simtools.addMacro(eventStore, "append to stream", inflight () => {
-  http.post("{eventStore.url}{appendStreamRoute}", body: event);
+  http.post("{eventStore.url}{route}", body: event);
 });
