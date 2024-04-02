@@ -5,35 +5,33 @@ bring expect;
 bring util;
 bring "./src/wing/optibus.w" as optibus;
 
-let appendStreamRoute = "/append-to-stream";
-let streamIdAttribute = "streamId";
-let revisionAttribute = "revision";
 
 class CalendarService extends optibus.ClientService {
-  pub storage: cloud.Bucket;
+	pub storage: cloud.Bucket;
 
 	pub extern "./src/calendar-service/handler.ts" static inflight calendarService(event: Json, storage: cloud.Bucket): void;
 
   new() {
-    this.storage = new cloud.Bucket();
+		this.storage = new cloud.Bucket();
     this.queue.setConsumer(inflight (event) => {
-      CalendarService.calendarService(Json.parse(event), this.storage);
-    });
-  }
-}
+			CalendarService.calendarService(Json.parse(event), this.storage);
+			});
+		}
+	}
 
 
-let eventStore = new optibus.EventStore(
-	appendStreamRoute: "/append-to-stream",
-	streamIdAttribute: "streamId",
-	revisionAttribute: "revision"
-);
+	let route = "/append-to-stream";
+	let eventStore = new optibus.EventStore(
+		appendStreamRoute: route,
+		streamIdAttribute: "streamId",
+		revisionAttribute: "revision"
+		);
 
-let calendarService = new CalendarService();
-eventStore.subscribeQueue(calendarService.queue);
+		let calendarService = new CalendarService();
+		eventStore.subscribeQueue(calendarService.queue);
 
-let event = Json.stringify({
-    streamId: "my-stream-id",
+		let event = Json.stringify({
+			streamId: "my-stream-id",
     events: [
       { id: "e1", type: "t1", data: { "vehicleId":"a1", "vehicleName":"b1", "assignedTo": "c1" } },
 			{ id: "e2", type: "t2", data: { "and":"now", "for":"something", "complexly": "different" } },
@@ -42,7 +40,7 @@ let event = Json.stringify({
   });
 log(event);
 test "data is stored on bucket" {
-  let appendResponse = http.post("{eventStore.url}{appendStreamRoute}", body: event);
+  let appendResponse = http.post("{eventStore.url}{route}", body: event);
 	expect.equal({
 		"message": "Events appended to stream correctly",
 		"revision": "3"
