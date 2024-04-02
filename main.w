@@ -25,7 +25,7 @@ let eventStore = new optibus.EventStore(
 	appendStreamRoute: route,
 	streamIdAttribute: "streamId",
 	revisionAttribute: "revision"
-	);
+);
 
 	let calendarService = new CalendarService();
 	eventStore.subscribeQueue(calendarService.queue);
