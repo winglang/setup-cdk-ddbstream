@@ -5,17 +5,11 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import type extern from "./calendar-service.handler.extern";
 
 export const calendarService: extern["calendarService"] = async (event, table) => {
-	await main(JSON.parse(event), { 
-		dynamodb: new DynamoDB(table.clientConfig!),
-		tableName: table.tableName,
-	});
-};
-
-const main = async (sqsEvent: SQSEvent, ctx: { dynamodb: DynamoDB, tableName: string }) => {
-	console.log("Processing calendar event", JSON.stringify(sqsEvent, undefined, "\t"));
-	await ctx.dynamodb.batchWriteItem({
+	let dynamoDb = new DynamoDB(table.clientConfig!);
+	let tableName =  table.tableNam;
+	await dynamodb.batchWriteItem({
 		RequestItems: {
-			[ctx.tableName]: sqsEvent.Records.map((record) => {
+			[tableName]: event.Records.map((record) => {
 				const event = JSON.parse(record.body);
 				return {
 					PutRequest: {
