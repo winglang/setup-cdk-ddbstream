@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { SQSEvent, SQSHandler } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import type extern from "./calendar-service.handler.extern";
 
