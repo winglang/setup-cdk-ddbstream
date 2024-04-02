@@ -4,12 +4,6 @@ import type { SQSEvent, SQSHandler } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import type extern from "./calendar-service.handler.extern";
 
-const { TABLE_NAME } = process.env;
-
-export const handler: SQSHandler = async (sqsEvent) => {
-	await main(sqsEvent, { dynamodb: new DynamoDB(), tableName: TABLE_NAME! });
-};
-
 export const calendarService: extern["calendarService"] = async (event, table) => {
 	await main(JSON.parse(event), { 
 		dynamodb: new DynamoDB(table.clientConfig!),
