@@ -1,15 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { SQSHandler } from "aws-lambda";
+import type { SQSEvent, SQSHandler } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import type extern from "./calendar-service.handler.extern";
 
 const { TABLE_NAME } = process.env;
-const dynamodb = new DynamoDB();
 
 export const handler: SQSHandler = async (sqsEvent) => {
-	await dynamodb.batchWriteItem({
+	await main(sqsEvent, {
+		dynamodb: new DynamoDB(),
+		tableName: TABLE_NAME!
+	});
+};
+
+
+const main = async (sqsEvent: SQSEvent, ctx: { dynamodb: DynamoDB, tableName: string }) => {
+	// console.log("Processing calendar event", JSON.stringify(sqsEvent, undefined, "\t"));
+	await ctx.dynamodb.batchWriteItem({
 		RequestItems: {
-			[TABLE_NAME!]: sqsEvent.Records.map((record) => {
+			[ctx.tableName]: sqsEvent.Records.map((record) => {
 				const event = JSON.parse(record.body);
 				return {
 					PutRequest: {
